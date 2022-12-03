@@ -27,6 +27,7 @@
             android:layout_margin="4dp"
             android:hint="@string/hint_city_name"
             android:textSize="18sp"
+            android:background="@drawable/search_edite_text_corner"
             android:textColor="@color/black"
             android:drawableStart="@drawable/search"
             android:importantForAutofill="no" />
