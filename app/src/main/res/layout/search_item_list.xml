@@ -34,7 +34,6 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     android:id="@+id/date_textview"
-
                     android:layout_marginStart="10dp" />
 
                 <TextView
