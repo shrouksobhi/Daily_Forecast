@@ -12,14 +12,18 @@ import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.LayoutManager
+import com.faltenreich.skeletonlayout.Skeleton
+import com.faltenreich.skeletonlayout.applySkeleton
 import com.shrouk.dailyforecast.R
 import com.shrouk.dailyforecast.adapter.WeatherForecastAdapter
 import com.shrouk.dailyforecast.databinding.FragmentWeatherForecastBinding
 import com.shrouk.dailyforecast.forecastExt.makeGone
 import com.shrouk.dailyforecast.forecastExt.makeVisible
+import com.shrouk.dailyforecast.forecastExt.observeOnce
 import com.shrouk.dailyforecast.model.Cod
 import com.shrouk.dailyforecast.model.WeatherList
 import com.shrouk.dailyforecast.model.WeatherResponse
@@ -31,6 +35,7 @@ class WeatherForecastFragment : Fragment() {
     private lateinit var weatherForecastAdapter: WeatherForecastAdapter
     private val weatherForecastViewModel: WeatherForecastViewModel by viewModels()
     private lateinit var recyclerView: RecyclerView
+    private lateinit var skeleton: Skeleton
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -45,16 +50,20 @@ class WeatherForecastFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         recyclerView = binding.recyclerview
-
+        skeleton=binding.recyclerview.applySkeleton(R.layout.search_item_list)
         binding.search.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
 
                 val query = binding.search.text.toString()
                 if (query.isEmpty()) {
-                    Toast.makeText(requireContext(), "Enter city name !", Toast.LENGTH_SHORT).show()
+                    binding.recyclerview.makeGone()
+                    Toast.makeText(requireContext(), "Enter city name ", Toast.LENGTH_SHORT).show()
                 } else {
+                    binding.recyclerview.makeVisible()
+
                     weatherForecastViewModel.getCityForecast(query)
                     observeResponse()
+
                     try {
 
                         val imm: InputMethodManager =
@@ -70,19 +79,21 @@ class WeatherForecastFragment : Fragment() {
 
         binding.retry.setOnClickListener {
             binding.bottomConstrain.makeGone()
+            skeleton=binding.recyclerview.applySkeleton(R.layout.search_item_list)
             val query = binding.search.text.toString()
             weatherForecastViewModel.getCityForecast(query)
+            observeResponse()
         }
     }
 
     private fun observeResponse() {
-        binding.notAccurate.makeGone()
 
         weatherForecastViewModel.cityforecast.observe(viewLifecycleOwner) {
             when (it.cod) {
                 Cod.OK -> {
-                    binding.recyclerview.makeVisible()
                     binding.notAccurate.makeGone()
+                    binding.recyclerview.makeVisible()
+                    skeleton.showSkeleton()
 
                     val datalist = it.weatherlist
                     installviews(datalist!!)
@@ -113,7 +124,8 @@ class WeatherForecastFragment : Fragment() {
 
     private fun observeRoomResponse() {
         //  weatherForecastViewModel.city.remove()
-        weatherForecastViewModel.city.observe(viewLifecycleOwner) {
+        weatherForecastViewModel.city.observeOnce(viewLifecycleOwner) {
+            skeleton.showSkeleton()
 
             val list = (it.weatherList)
             //   Log.e("TAG", "observeRoomResponse: $list")
@@ -131,10 +143,13 @@ class WeatherForecastFragment : Fragment() {
     }
 
     private fun installviews(weatherlist: ArrayList<WeatherList>) {
+        skeleton.showOriginal()
         val layoutManager: LayoutManager = LinearLayoutManager(requireContext())
         recyclerView.layoutManager = layoutManager
         weatherForecastAdapter = WeatherForecastAdapter(weatherlist)
         recyclerView.adapter = weatherForecastAdapter
 
     }
+
+
 }
