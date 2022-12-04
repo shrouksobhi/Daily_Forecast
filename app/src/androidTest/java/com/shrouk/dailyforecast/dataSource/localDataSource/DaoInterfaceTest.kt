@@ -9,6 +9,7 @@ import com.google.common.truth.Truth.assertThat
 import com.shrouk.dailyforecast.HiltTestRunner
 import com.shrouk.dailyforecast.getOrAwaitValue
 import com.shrouk.dailyforecast.model.*
+import com.shrouk.dailyforecast.ui.WeatherForecastFragment
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -47,6 +48,12 @@ class DaoInterfaceTest {
     @After
     fun teardown(){
         database.close()
+    }
+    @Test
+    fun testLaunchFragmentInHiltContainer() {
+        launchFragmentInHiltContainer<WeatherForecastFragment> {
+
+        }
     }
     @Test
     fun saveForecatData()= runBlockingTest {
